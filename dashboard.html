@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Learnify! - Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://img.magnific.com/premium-vector/geometric-science-education-background-vector-gradient-blue-digital-remix_53876-125993.jpg?semt=ais_hybrid&w=740&q=80');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 20px;
+        }
+
+        .container {
+            width: 900px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        h2, h3, h4 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        hr {
+            border: 1px solid #ddd;
+            margin: 15px 0;
+        }
+
+        .card {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .subject-box {
+            background-color: #eef2f5;
+            border: 1px solid #bce8f1;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        /* Flexbox styling for individual subject cards */
+        .subject-flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+
+        .subject-card-item {
+            background-color: #ffffff;
+            border: 1px solid #bce8f1;
+            border-radius: 4px;
+            padding: 15px;
+            flex: 1 1 220px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .subject-card-item h4 {
+            color: #0056b3;
+            margin-bottom: 10px;
+        }
+
+        select {
+            padding: 5px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Learnify! Dashboard</h2>
+        <hr>
+
+        <!-- Student Profile Card (Static Display) -->
+        <div class="card">
+            <h3>Student Profile</h3>
+            <p><strong>Name:</strong> <span id="displayName">Student</span></p>
+            <p><strong>Email:</strong> <span id="displayEmail">Not Available</span></p>
+            <p><strong>City:</strong> <span id="displayCity">Not Provided</span></p>
+            <p><strong>Class:</strong> <span id="displayClass">Not Provided</span></p>
+        </div>
+
+        <!-- Subjects Section -->
+        <div class="card">
+            <h3>Your Subjects</h3>
+            <div class="subject-box">
+                <h4 id="displayClassTitle">Class Curriculum</h4>
+                
+                <!-- Second Language Dropdown for Classes 6-10 -->
+                <div id="languageSelectorContainer" style="display: none;">
+                    <label for="secondLang"><strong>Choose Second Language:</strong></label><br>
+                    <select id="secondLang" onchange="updateLanguage()">
+                        <option value="Hindi">Hindi</option>
+                        <option value="Sanskrit">Sanskrit</option>
+                    </select>
+                </div>
+
+                <!-- Stream Selection Dropdown for Classes 11-12 -->
+                <div id="streamSelectorContainer" style="display: none;">
+                    <label for="streamSelect"><strong>Select Your Stream:</strong></label><br>
+                    <select id="streamSelect" onchange="updateStream()">
+                        <option value="Science">Science Stream</option>
+                        <option value="Commerce">Commerce Stream</option>
+                        <option value="Humanities">Humanities / Arts Stream</option>
+                    </select>
+                </div>
+
+                <!-- Flexbox Container for Dynamic Subjects -->
+                <div id="subjectFlexContainer" class="subject-flex-container">
+                    <!-- Cards are dynamically injected via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer / Logout -->
+        <div style="text-align: right;">
+            <a href="login.html"><button type="button" style="background-color: #dc3545;">Logout</button></a>
+        </div>
+    </div>
+
+    <script>
+    // Global direct link for all textbook start learning buttons
+    var ncertTextbookUrl = "https://ncert.nic.in/textbook.php";
+
+    window.onload = function() {
+        // Read data from sessionStorage (saved when logging in from MongoDB)
+        var name = sessionStorage.getItem("studentName");
+        var email = sessionStorage.getItem("savedEmail");
+        var city = sessionStorage.getItem("studentCity");
+        var studentClass = sessionStorage.getItem("savedCourse");
+
+        if (studentClass == null) {
+            studentClass = "Class 1";
+        }
+
+        if (name != null) {
+            document.getElementById("displayName").innerText = name;
+        }
+        if (email != null) {
+            document.getElementById("displayEmail").innerText = email;
+        }
+        if (city != null && city != "") {
+            document.getElementById("displayCity").innerText = city;
+        }
+
+        // Display class statically as text
+        document.getElementById("displayClass").innerText = studentClass;
+        document.getElementById("displayClassTitle").innerText = studentClass + " Subjects";
+
+        renderDashboardSubjects(studentClass);
+    }
+
+    // Creates a card linking directly to the main ncert textbook page in a new tab
+    function createSubjectCard(subjectName) {
+        return "<div class='subject-card-item'>" +
+                    "<h4>" + subjectName + "</h4>" +
+                    "<a href='" + ncertTextbookUrl + "' target='_blank'>" +
+                        "<button type='button'>Start Learning</button>" +
+                    "</a>" +
+               "</div>";
+    }
+
+    function renderDashboardSubjects(studentClass) {
+        var langContainer = document.getElementById("languageSelectorContainer");
+        var streamContainer = document.getElementById("streamSelectorContainer");
+        var flexContainer = document.getElementById("subjectFlexContainer");
+
+        langContainer.style.display = "none";
+        streamContainer.style.display = "none";
+        var html = "";
+
+        // Classes 1 to 5
+        if (studentClass == "Class 1" || studentClass == "Class 2" || studentClass == "Class 3" || studentClass == "Class 4" || studentClass == "Class 5") {
+            html += createSubjectCard("English");
+            html += createSubjectCard("Hindi");
+            html += createSubjectCard("Mathematics");
+            html += createSubjectCard("Environmental Studies (EVS)");
+        } 
+        // Classes 6 to 10
+        else if (studentClass == "Class 6" || studentClass == "Class 7" || studentClass == "Class 8" || studentClass == "Class 9" || studentClass == "Class 10") {
+            langContainer.style.display = "block"; 
+            
+            var savedLang = sessionStorage.getItem("savedSecondLanguage");
+            if (savedLang == null) {
+                savedLang = "Hindi";
+                sessionStorage.setItem("savedSecondLanguage", "Hindi");
+            } else {
+                document.getElementById("secondLang").value = savedLang;
+            }
+
+            html += createSubjectCard("Mathematics");
+            html += createSubjectCard("Science");
+            html += createSubjectCard("Social Science");
+            html += createSubjectCard("English");
+            html += createSubjectCard("Second Language: " + savedLang);
+        } 
+        // Classes 11 and 12
+        else if (studentClass == "Class 11" || studentClass == "Class 12") {
+            streamContainer.style.display = "block"; 
+
+            var savedStream = sessionStorage.getItem("savedStream");
+            if (savedStream == null) {
+                savedStream = "Science";
+                sessionStorage.setItem("savedStream", "Science");
+            } else {
+                document.getElementById("streamSelect").value = savedStream;
+            }
+
+            if (savedStream == "Science") {
+                html += createSubjectCard("English Core / Elective");
+                html += createSubjectCard("Physics");
+                html += createSubjectCard("Chemistry");
+                html += createSubjectCard("Mathematics");
+                html += createSubjectCard("Biology / Biotechnology");
+            } 
+            else if (savedStream == "Commerce") {
+                html += createSubjectCard("English Core / Elective");
+                html += createSubjectCard("Accountancy");
+                html += createSubjectCard("Business Studies");
+                html += createSubjectCard("Economics");
+            } 
+            else if (savedStream == "Humanities") {
+                html += createSubjectCard("English Core / Elective");
+                html += createSubjectCard("History");
+                html += createSubjectCard("Political Science");
+                html += createSubjectCard("Geography");
+                html += createSubjectCard("Sociology");
+                html += createSubjectCard("Psychology");
+                html += createSubjectCard("Economics");
+                html += createSubjectCard("Legal Studies");
+                html += createSubjectCard("Fine Arts / Music / Home Science");
+            }
+        }
+
+        flexContainer.innerHTML = html;
+    }
+
+    function updateLanguage() {
+        var selectedLang = document.getElementById("secondLang").value;
+        sessionStorage.setItem("savedSecondLanguage", selectedLang);
+        location.reload();
+    }
+
+    function updateStream() {
+        var selectedStream = document.getElementById("streamSelect").value;
+        sessionStorage.setItem("savedStream", selectedStream);
+        location.reload();
+    }
+</script>
+
+</body>
+</html>

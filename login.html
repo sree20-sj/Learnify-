@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Learnify! - Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('https://img.magnific.com/premium-vector/geometric-science-education-background-vector-gradient-blue-digital-remix_53876-125993.jpg?semt=ais_hybrid&w=740&q=80');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            margin: 0;
+            padding: 80px 0;
+        }
+
+        .form-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border: 1px solid #ccc;
+            width: 400px;
+            margin: 0 auto;
+        }
+
+        h2, h3 {
+            color: #333;
+            margin-top: 0;
+        }
+
+        hr {
+            border: 1px solid #ddd;
+            margin: 20px 0;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input {
+            width: 95%;
+            padding: 8px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-container">
+        <h2>Learnify!</h2>
+        <h3>Student Login</h3>
+
+        <hr>
+
+        <!-- Make sure your form has onsubmit="return validateLogin(event)" -->
+<form onsubmit="return validateLogin(event)">
+    <h2>Login</h2>
+    <input type="email" id="loginEmail" placeholder="Enter Email" required><br>
+    <input type="password" id="loginPassword" placeholder="Enter Password" required><br>
+    <button type="submit">Login</button>
+</form>
+
+<div style="text-align: center; margin-top: 15px;">
+    <p>New student? <a href="register.html" style="color: #007BFF; text-decoration: none; font-weight: bold;">Register here</a></p>
+</div>
+
+<script>
+    async function validateLogin(event) {
+        if (event) event.preventDefault(); // Stops the page from refreshing
+
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+
+        if (!email || !password) {
+            alert("All fields must be filled out!");
+            return false;
+        }
+
+        try {
+            // Sends data to your running server.js
+            const response = await fetch('http://localhost:3000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            const result = await response.json();
+            console.log("Server response:", result); // Shows in F12 Console
+
+            if (result.success) {
+                alert("Login Successful!");
+                
+                // Save user data for the dashboard
+                sessionStorage.setItem("studentName", result.student.name);
+                sessionStorage.setItem("savedEmail", result.student.email);
+                sessionStorage.setItem("studentCity", result.student.city);
+                sessionStorage.setItem("savedCourse", result.student.course);
+
+                // Go to dashboard
+                window.location.href = "dashboard.html";
+            } else {
+                alert(result.message); // Shows "Invalid Email or Password!"
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Could not connect to the server.");
+        }
+
+        return false;
+    }
+</script>
+
+</body>
+</html>
